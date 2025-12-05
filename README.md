@@ -1,17 +1,26 @@
-# **MSc-Thesis:** On the simulation of GIT-Templates for BSc-Theses
-**Author:** *Benedikt Ehinger*
+# **BSc-Thesis:** Effect of stimulus duration on event-related potentials during a rapid serial visual presentation task
+**Author:** *Jan Sauter*
 
-**Supervisor(s):** *Supervisor 1*, *Supervisor 2*
+**Supervisor(s):** *René Skukies*, *Martin Geiger*
 
-**Year:** *2022*
+**Year:** *2025*
 
 ## Project Description
->provide a short description of the main goals - just copy from the proposal
+The main goal was to assess the effect of stimulus durations (100-15000 ms) in a rapid serial presentation (RSVP) task with faces as visual stimuli and no inter-stimulus intervals (ISIs).
+Further the applicability of deconvolution-based overlap correction in combination with duration modelling was assessed.
+Also linear and non-linear modelling approaches for the duration effect were compared and the effect of ISIs was analyzed with a control task condition where ISIs varied (800-2500 ms).
+An additional analysis on a habituation effect during a stimulus sequence was conducted as well.
 
 ## Zotero Library Path
 >Please provide the link to the Zotero group here or include a `Bib`-File in the `report` folder
 
 ## Instruction for a new student
+
+Preprocessing:
+
+Analysis:
+
+
 >If a fellow student wants to reproduce all your results. What scripts, in which order, with which data need to be run?
 >
 >Be as specific as possible. Plan to spend **at least 1h** on this.
