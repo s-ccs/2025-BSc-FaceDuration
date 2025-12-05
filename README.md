@@ -17,8 +17,31 @@ An additional analysis on a habituation effect during a stimulus sequence was co
 ## Instruction for a new student
 
 Preprocessing:
+The Preprocessing script Preprocessing_final.m was ran on the raw data from Martin Geigers study /store/dat/MSc_EventDuration.
+Script requirements: function/ccs_runamica15.m script running the amica algorithm (provided by the CCS group)
+
+Preprocessed EEG data and corresponding event files were saved to derivative folder /store/dat/MSc_EventDuration/derivatives/25_Jan_BSc_preprocessing/preprocessed_final in BIDS conform format.
+
+The script contains boolean values which indicate wether output should be genrated for several steps of the preprocessing, which would then be saved in the derivative folder. Final results of these outputs can be found in the following directions/files:
+- Channels removed (bad_channels/bad_channels_overview_final.csv)
+- ICA components and overview (overview: ica/amica/ica_rejection_overview_final.csv, individual components: ica/amica/components_final/ica_rejection_overview_final.csv)
+- Sections marked by ASR rejection (ASR_cleaning_final)
+
+The filter_50Hz folder also contains the output from two suspicious subjects which were saved manually
+
 
 Analysis:
+
+For the individual inspection of the ERPs from each subject, the anaylsis_singleSubjects.jl must be ran.
+The script offers interaction feautures which allow to select a subject and channel (P7, PO7, P8, PO8, O1, O2) for inspection of the ERPs.
+
+Analysis accross all subjects was conducted in the analysis_group_blank.jl for the ISI effect and analysis_group_duration.jl for the stimulus duration effect.
+The script again contains interaction features to choose the channel which should be visualized and toggle between task conditions regarding the cluster-depth permutation test outputs.
+Plots used in figures were generated at the end of a section and then used in Affinity Designer to generate complex plots.
+These complex plots are saved in the plots folder of this git repository.
+
+The script produces plots in the outputs from which complex plots are generated from or can at least be retraced to.
+
 
 
 >If a fellow student wants to reproduce all your results. What scripts, in which order, with which data need to be run?
