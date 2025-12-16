@@ -28,17 +28,18 @@ The script contains boolean values which indicate wether output should be genrat
 The `filter_50Hz` folder also contains the output from two suspicious subjects which were saved manually
 
 ### Analysis
-For the individual inspection of the ERPs from each subject, the anaylsis_singleSubjects.jl must be ran.
+For the individual inspection of the ERPs from each subject, the `anaylsis_singleSubjects.jl` must be ran.
 The script offers interaction feautures which allow to select a subject and channel (P7, PO7, P8, PO8, O1, O2) for inspection of the ERPs.
 
-Analysis accross all subjects was conducted in the analysis_group_blank.jl for the ISI effect and analysis_group_duration.jl for the stimulus duration effect.
-The script again contains interaction features to choose the channel which should be visualized and toggle between task conditions regarding the cluster-depth permutation test outputs.
-Plots used in figures were generated at the end of a section and then used in Affinity Designer to generate complex plots.
-These complex plots are saved in the plots folder of this git repository.
+Analysis accross all subjects was conducted in the `analysis_group_blank.jl` for the ISI effect and `analysis_group_duration.jl` for the stimulus duration effect.
+The scripts also contain interaction features which allow to choose the channel which should be visualized and toggle between task conditions regarding the cluster-depth permutation test outputs for the ISI effect analysis.
+Plots used in figures were usually generated at the end of a section and then used in Affinity Designer to generate complex plots.
+These complex plots are saved in the `plots` folder of this git repository.
 
-The script produces plots in the outputs from which complex plots are generated from or can at least be retraced to.
+The notebooks produce plots in the outputs from which the complex plots are generated from or can at least be retraced to.
 
-The scripts `visualizations.jl` and `visualizations.ipynb` contain code in order to generate visualizations of removed channels, stimulus duration & ISI duration distributions
+The notebook `visualizations.jl` contains which generates visualizations for the stimulus duration and ISI duration distributions, which were also used in the `task.png` figure.
+`visualizations.ipynb` contains code in order to generate visualizations of removed channels.
 
 ## Overview of Folder Structure 
 
