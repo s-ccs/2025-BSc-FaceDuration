@@ -33,7 +33,7 @@ addpath './tmp'
 % Subjectlists for each experiment
 %subjectsOddball  = [4 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41];
 %subjectsDuration = [1 2 3 4 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 27 28 29 30 31 32 33 34 35 37 38 39 40 41];
-subjects = [1];
+subjects = [13 38];
 task = 'Duration'; % Either 'Oddball' or 'Duration'
 ALLEEG = [];
 CURRENTSTUDY = 0;
@@ -101,75 +101,66 @@ ALLEEG = pop_clean_rawdata(ALLEEG, ...
     'WindowCriterionTolerances', 'off');
 
 %% Get removed channels and save them to CSV file
+save_removed_channels = true;
 
-% Initialize result storage
-results = cell(length(ALLEEG), 2);
-
-% List of all removed channels for later visualization
-allRemovedChannels = {};
-
-for s = 1:length(ALLEEG)
-
-    EEG = ALLEEG(s);
+if save_removed_channels
+    % Initialize result storage
+    results = cell(length(ALLEEG), 2);
     
-    % Get the removed channel names
-    if isfield(EEG.etc, 'clean_channel_mask')
-        removedChannels = EEG.urchanlocs(~EEG.etc.clean_channel_mask);
-        removedChannelNames = {removedChannels.labels};
-    else
-        removedChannelNames = {};
+    % List of all removed channels for later visualization
+    allRemovedChannels = {};
+    
+    for s = 1:length(ALLEEG)
+    
+        EEG = ALLEEG(s);
+        
+        % Get the removed channel names
+        if isfield(EEG.etc, 'clean_channel_mask')
+            removedChannels = EEG.urchanlocs(~EEG.etc.clean_channel_mask);
+            removedChannelNames = {removedChannels.labels};
+        else
+            removedChannelNames = {};
+        end
+    
+        removedStr = strjoin(removedChannelNames, ', '); % Convert removed channels to string seperated by commata
+        results{s, 1} = EEG.subject;
+        results{s, 2} = removedStr;
+    
+        allRemovedChannels = [allRemovedChannels, removedChannelNames];
     end
-
-    removedStr = strjoin(removedChannelNames, ', '); % Convert removed channels to string seperated by commata
-    results{s, 1} = EEG.subject;
-    results{s, 2} = removedStr;
-
-    allRemovedChannels = [allRemovedChannels, removedChannelNames];
+    
+    disp(results)
+    
+    T = cell2table(results, 'VariableNames', {'Subject', 'RemovedChannels'});
+    
+    folderpath = fullfile(cfg.filepath_out, 'bad_channels');
+    
+    % Create 'bad_channels' folder in derivatives folder if not existent
+    if ~exist(folderpath, 'dir') 
+        mkdir(folderpath);
+    end
+    
+    % Save results as CSV
+    writetable(T, fullfile(folderpath,'bad_channels_overview.csv'));
 end
-
-disp(results)
-
-T = cell2table(results, 'VariableNames', {'Subject', 'RemovedChannels'});
-
-folderpath = fullfile(cfg.filepath_out, 'bad_channels');
-
-% Create 'bad_channels' folder in derivatives folder if not existent
-if ~exist(folderpath, 'dir') 
-    mkdir(folderpath);
-end
-
-% Save results as CSV
-writetable(T, fullfile(folderpath,'bad_channels_overview.csv'));
 
 %% Rereference using average reference
 ALLEEG = pop_reref( ALLEEG,[],'interpchan',['off']);
 
-%% Remove large spikes
-ALLEEG_pre = ALLEEG; % in order to compare EEG before and after removal
-
-for s = 1:length(ALLEEG)
-    EEG = ALLEEG(s);
-
-    winRej = uf_continuousArtifactDetect(EEG,'amplitudeThreshold',1000);
-    EEG = eeg_eegrej(EEG, winRej);
-    EEG.etc.crap_winrej = winRej;
-
-    % Rewrite eeg data with removed spikes to ALLEEG variable
-    ALLEEG(s) = EEG;
-end
-
-%% Compare cleaned data to the original
-%subject = 2;
-%vis_artifacts(ALLEEG(subject),ALLEEG_pre(subject));
-
 %% Run amica ICA algorithm
-cfg.recalculate_ica = false; % Flag wether ica weights should be recalculated
+recalculate_ica = false; % Flag wether ica weights should be recalculated
 
-if cfg.recalculate_ica
+if recalculate_ica
     for s = 1:length(ALLEEG)
-        
-        % Filter temporary at 1.5 Hz
+
         EEG = ALLEEG(s);
+
+        % Remove large spikes
+        winRej = uf_continuousArtifactDetect(EEG,'amplitudeThreshold',1000);
+        EEG = eeg_eegrej(EEG, winRej);
+        EEG.etc.crap_winrej = winRej;
+
+        % Filter temporary at 1.5 Hz
         EEG = pop_eegfiltnew(EEG, 'locutoff',1.5);
         
         % Define parameters
@@ -195,12 +186,13 @@ if cfg.recalculate_ica
 end
 
 %% Load amica ICA weights and remove bad components
+plot_ica_components = false;
 
 for s = 1:length(ALLEEG)
 
     EEG = ALLEEG(s);
     
-    out_directory= fullfile(cfg.filepath_out,'ica','amica', 'weights',EEG.subject,filesep);
+    out_directory= fullfile(cfg.filepath_out,'ica','amica', 'weights_final',EEG.subject,filesep);
     %disp(out_directory)
 
     % Load amica weights
@@ -226,23 +218,25 @@ for s = 1:length(ALLEEG)
     % (components with probability >80% non-braincomponents)
     EEGica = pop_icflag(EEGica,[NaN NaN;0.8 1;0.8 1;0.8 1;0.8 1;0.8 1;0.8 1]);
 
-    % Visualize ICA components
-    % Create directory for component outputs
-    components_directory = fullfile(cfg.filepath_out, 'ica', 'amica', 'components', EEGica.subject);
-    if ~exist(components_directory, 'dir') 
-            mkdir(components_directory);
-    end
-
-    %Visualize components for subject s and save as PNG
-    for component = 1:size(EEGica.icawinv, 2)
-        % Visualize component
-        figure = pop_prop_extended(EEGica, 0, component, NaN, {'freqrange', [1 80]}, {'erp', 'on'}, 0, 'ICLabel');
-
-        % Save visualization as PNG
-        saveas(figure, fullfile(components_directory, sprintf('%s_IC-%03i.png', EEGica.subject, component)));
-
-        % Close figure to avoid clutter
-        close(figure);
+    if plot_ica_components
+        % Visualize ICA components
+        % Create directory for component outputs
+        components_directory = fullfile(cfg.filepath_out, 'ica', 'amica', 'components', EEGica.subject);
+        if ~exist(components_directory, 'dir') 
+                mkdir(components_directory);
+        end
+    
+        %Visualize components for subject s and save as PNG
+        for component = 1:size(EEGica.icawinv, 2)
+            % Visualize component
+            figure = pop_prop_extended(EEGica, 0, component, NaN, {'freqrange', [1 80]}, {'erp', 'on'}, 0, 'ICLabel');
+    
+            % Save visualization as PNG
+            saveas(figure, fullfile(components_directory, sprintf('%s_IC-%03i.png', EEGica.subject, component)));
+    
+            % Close figure to avoid clutter
+            close(figure);
+        end
     end
     
     % Copy over ICA values to unfiltered EEG
@@ -261,53 +255,57 @@ for s = 1:length(ALLEEG)
 end
 
 %% Generate overview of removed ICA components
+generate_ica_overview = true;
 
-% ICLabel classes (order from ICLabel output)
-%classes = {'Brain', 'Muscle', 'Eye', 'Heart', 'Line Noise', 'Channel Noise', 'Other'};
-classes = EEGica.etc.ic_classification.ICLabel.classes;
-
-% Initialize table storage
-nSubjects = numel(ALLEEG);
-summary = cell(nSubjects, numel(classes)+1); % +1 for subject column
-
-for s = 1:nSubjects
-    % Subject ID
-    summary{s,1} = ALLEEG(s).subject;
-
-    % Get rejected components for this subject
-    rejICs = ALLEEG(s).etc.comp_rejected;
-
-    % Get ICLabel classifications
-    if isfield(ALLEEG(s).etc.ic_classifications, 'ICLabel')
-        iclabels = ALLEEG(s).etc.ic_classifications.ICLabel.classifications; % nICs x 7 matrix
-        [~, maxclass] = max(iclabels, [], 2); % class index per IC
-    else
-        error('ICLabel results not found in EEG(%d)', s);
-    end
-
-    % Fill class columns
-    for c = 1:numel(classes)
-        % Find rejected ICs that belong to this class
-        compIdx = rejICs(maxclass(rejICs) == c);
-
-        % Store as a string list, e.g., "2, 5, 7"
-        if isempty(compIdx)
-            summary{s,c+1} = '';
+if generate_ica_overview
+    % ICLabel classes (order from ICLabel output)
+    %classes = {'Brain', 'Muscle', 'Eye', 'Heart', 'Line Noise', 'Channel Noise', 'Other'};
+    classes = EEGica.etc.ic_classification.ICLabel.classes;
+    
+    % Initialize table storage
+    nSubjects = numel(ALLEEG);
+    summary = cell(nSubjects, numel(classes)+1); % +1 for subject column
+    
+    for s = 1:nSubjects
+        % Subject ID
+        summary{s,1} = ALLEEG(s).subject;
+    
+        % Get rejected components for this subject
+        rejICs = ALLEEG(s).etc.comp_rejected;
+    
+        % Get ICLabel classifications
+        if isfield(ALLEEG(s).etc.ic_classifications, 'ICLabel')
+            iclabels = ALLEEG(s).etc.ic_classifications.ICLabel.classifications; % nICs x 7 matrix
+            [~, maxclass] = max(iclabels, [], 2); % class index per IC
         else
-            summary{s,c+1} = strjoin(string(compIdx), ', ');
+            error('ICLabel results not found in EEG(%d)', s);
+        end
+    
+        % Fill class columns
+        for c = 1:numel(classes)
+            % Find rejected ICs that belong to this class
+            compIdx = rejICs(maxclass(rejICs) == c);
+    
+            % Store as a string list, e.g., "2, 5, 7"
+            if isempty(compIdx)
+                summary{s,c+1} = '';
+            else
+                summary{s,c+1} = strjoin(string(compIdx), ', ');
+            end
         end
     end
+    
+    % Convert to table
+    colNames = [{'Subject'}, classes];
+    T = cell2table(summary, 'VariableNames', colNames);
+    
+    % Save as CSV
+    outFile = fullfile(cfg.filepath_out, 'ica', 'amica','ica_rejection_overview.csv');
+    writetable(T, outFile);
+    
+    disp(['Overview saved to: ' outFile]);
+
 end
-
-% Convert to table
-colNames = [{'Subject'}, classes];
-T = cell2table(summary, 'VariableNames', colNames);
-
-% Save as CSV
-outFile = fullfile(cfg.filepath_out, 'ica', 'amica','ica_rejection_overview.csv');
-writetable(T, outFile);
-
-disp(['Overview saved to: ' outFile]);
 
 
 %% Continuous ASR rejection
@@ -359,22 +357,21 @@ end
 
 ALLEEG = pop_saveset(ALLEEG, 'savemode', 'resave');
 
-
-%% Write events files
-for s = 1:length(ALLEEG)
-    EEG = ALLEEG(s);
-
-    EEG.filepath = fullfile(cfg.filepath_out,'/preprocessed/',EEG.subject,'eeg');
-    if ~exist(EEG.filepath,'dir')
-        mkdir(EEG.filepath);
-    end
-
-    % Define output path
-    fileOut = fullfile(EEG.filepath, sprintf('%s_ses-001_task-%s_run-001', EEG.subject, task));
-
-    disp(fileOut)
-
-    % Save events in BIDS format
-    bids_writeeventfile(EEG, fileOut, 'omitsample', 'off');
-
-end
+% %% Write events files
+% for s = 1:length(ALLEEG)
+%     EEG = ALLEEG(s);
+% 
+%     EEG.filepath = fullfile(cfg.filepath_out,'/preprocessed/',EEG.subject,'eeg');
+%     if ~exist(EEG.filepath,'dir')
+%         mkdir(EEG.filepath);
+%     end
+% 
+%     % Define output path
+%     fileOut = fullfile(EEG.filepath, sprintf('%s_ses-001_task-%s_run-001', EEG.subject, task));
+% 
+%     disp(fileOut)
+% 
+%     % Save events in BIDS format
+%     bids_writeeventfile(EEG, fileOut, 'omitsample', 'off');
+% 
+% end
