@@ -11,27 +11,23 @@ Further the applicability of deconvolution-based overlap correction in combinati
 Also linear and non-linear modelling approaches for the duration effect were compared and the effect of ISIs was analyzed with a control task condition where ISIs varied (800-2500 ms).
 An additional analysis on a habituation effect during a stimulus sequence was conducted as well.
 
-## Zotero Library Path
->Please provide the link to the Zotero group here or include a `Bib`-File in the `report` folder
-
 ## Instruction for a new student
 
-Preprocessing:
-The Preprocessing script Preprocessing_final.m was ran on the raw data from Martin Geigers study /store/dat/MSc_EventDuration.
-Script requirements: function/ccs_runamica15.m script running the amica algorithm (provided by the CCS group)
+### Preprocessing
+The Preprocessing script `Preprocessing_final.m` was ran on the raw data from Martin Geigers study `/store/dat/MSc_EventDuration`.
+Script requirements: `function/ccs_runamica15.m` script running the amica algorithm (provided by the CCS group)
 
-Preprocessed EEG data and corresponding event files were saved to derivative folder /store/dat/MSc_EventDuration/derivatives/25_Jan_BSc_preprocessing/preprocessed_final in BIDS conform format.
+Preprocessed EEG data and corresponding event files were saved to derivative folder `/store/dat/MSc_EventDuration/derivatives/25_Jan_BSc_preprocessing/preprocessed_final` in BIDS conform format.
+Due to issues with the preprocessing script the VEOGU EOG channel subjects 13, 38 were not preprocessed.
 
-The script contains boolean values which indicate wether output should be genrated for several steps of the preprocessing, which would then be saved in the derivative folder. Final results of these outputs can be found in the following directions/files:
-- Channels removed (bad_channels/bad_channels_overview_final.csv)
-- ICA components and overview (overview: ica/amica/ica_rejection_overview_final.csv, individual components: ica/amica/components_final/ica_rejection_overview_final.csv)
-- Sections marked by ASR rejection (ASR_cleaning_final)
+The script contains boolean values which indicate wether output should be genrated for several steps of the preprocessing, which would then be saved in the derivative folder. Final results of these outputs can be found in the following directories/files:
+- Channels removed (`bad_channels/bad_channels_overview_final.csv`)
+- ICA components and overview (overview: `ica/amica/ica_rejection_overview_final.csv`, individual components: `ica/amica/components_final/ica_rejection_overview_final.csv`)
+- Sections marked by ASR rejection (`ASR_cleaning_final`)
 
-The filter_50Hz folder also contains the output from two suspicious subjects which were saved manually
+The `filter_50Hz` folder also contains the output from two suspicious subjects which were saved manually
 
-
-Analysis:
-
+### Analysis
 For the individual inspection of the ERPs from each subject, the anaylsis_singleSubjects.jl must be ran.
 The script offers interaction feautures which allow to select a subject and channel (P7, PO7, P8, PO8, O1, O2) for inspection of the ERPs.
 
@@ -42,13 +38,7 @@ These complex plots are saved in the plots folder of this git repository.
 
 The script produces plots in the outputs from which complex plots are generated from or can at least be retraced to.
 
-
-
->If a fellow student wants to reproduce all your results. What scripts, in which order, with which data need to be run?
->
->Be as specific as possible. Plan to spend **at least 1h** on this.
->
->Optional: Add a pipeline plot in which the different steps are displayed together with the corresponding scripts.
+The scripts `visualizations.jl` and `visualizations.ipynb` contain code in order to generate visualizations of removed channels, stimulus duration & ISI duration distributions
 
 ## Overview of Folder Structure 
 
